@@ -3,64 +3,25 @@
 namespace Atournayre\DotEnvUpdaterBundle\Command;
 
 use Atournayre\Component\DotEnvEditor\DotEnvEditor;
-use Atournayre\DotEnvUpdaterBundle\Service\DotEnvUpdaterService;
-use Symfony\Component\Console\Command\Command;
+use Atournayre\DotEnvUpdaterBundle\Exception\DotEnvEditionNotAllowedException;
+use Atournayre\DotEnvUpdaterBundle\Exception\DotEnvMissingFileException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
-use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\HttpKernel\KernelInterface;
 
-class DotEnvUpdaterElementCommand extends Command
+class DotEnvUpdaterElementCommand extends DotEnvUpdaterCommand
 {
-    const DOTENV = '.env';
-    /**
-     * @var string
-     */
-    protected static $defaultName = 'dotenv:update:element';
-
-    /**
-     * @var KernelInterface
-     */
-    private $kernel;
-
-    /**
-     * @var DotEnvUpdaterService
-     */
-    private $dotEnvUpdater;
-
-    /**
-     * @var string
-     */
-    private $dotEnvDotPhpFile;
-
-    /**
-     * @var SymfonyStyle
-     */
-    private $io;
-
-    public function __construct(KernelInterface $kernel, DotEnvUpdaterService $dotEnvUpdater)
-    {
-        parent::__construct(self::$defaultName);
-        $this->kernel = $kernel;
-        $this->dotEnvUpdater = $dotEnvUpdater;
-    }
-
     protected function configure(): void
     {
         $this
+            ->setName('dotenv:update:element')
             ->setDescription('Update specific element of .env.*.php file')
-            ->addArgument('envFile', null, InputArgument::REQUIRED, '.env.local.php')
+            ->addArgument('envFile', null, InputArgument::REQUIRED, self::DEFAULT_DOTENV_DOTPHP)
+            ->addOption('debug', null, InputOption::VALUE_NONE, 'Dump configuration')
         ;
-    }
-
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-        parent::initialize($input, $output);
-        $this->io = new SymfonyStyle($input, $output);
-        $this->dotEnvDotPhpFile = $input->getArgument('envFile');
     }
 
     /**
@@ -71,14 +32,17 @@ class DotEnvUpdaterElementCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $dotEnvDotPhpPath = $this->kernel->getProjectDir().DIRECTORY_SEPARATOR.$this->dotEnvDotPhpFile;
+            $dotEnvDotPhpFile = $input->getArgument('envFile');
+            $isDebug = true === $input->getOption('debug');
 
-            if ($this->dotEnvDotPhpFile === self::DOTENV) {
-                throw new \Exception(sprintf('%s edition is not allowed!', self::DOTENV));
+            $dotEnvDotPhpPath = $this->kernel->getProjectDir().DIRECTORY_SEPARATOR.$dotEnvDotPhpFile;
+
+            if ($this->dotEnvDotPhpFileEditionIsNotAllowed($dotEnvDotPhpFile)) {
+                throw new DotEnvEditionNotAllowedException();
             }
 
-            if (!file_exists($dotEnvDotPhpPath)) {
-                throw new \Exception(sprintf('Impossible to update %s cause file is missing.', $this->dotEnvDotPhpFile));
+            if ($this->dotEnvDotPhpFileIsMissing($dotEnvDotPhpPath)) {
+                throw new DotEnvMissingFileException($dotEnvDotPhpFile);
             }
 
             $dotEnvDotPhpVariables = $this->dotEnvUpdater->getVariablesFromDotEnvDotPhp($dotEnvDotPhpPath);
@@ -93,7 +57,11 @@ class DotEnvUpdaterElementCommand extends Command
             $dotEnvEditor->add($selectedVariableKey, $selectedVariableValue);
             $dotEnvEditor->save();
 
-            $this->io->success(sprintf('Congrats, your %s is up-to-date!', $this->dotEnvDotPhpFile));
+            if ($isDebug) {
+                $this->debug($dotEnvDotPhpFile);
+            }
+
+            $this->io->success(sprintf('Congrats, your %s is up-to-date!', $dotEnvDotPhpFile));
         } catch (\Exception $exception) {
             $this->io->error($exception->getMessage());
         }
