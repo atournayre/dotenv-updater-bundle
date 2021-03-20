@@ -1,0 +1,18 @@
+services:
+  atournayre_dotenv_updater_update_command:
+    class: Atournayre\DotEnvUpdaterBundle\Command\DotEnvUpdaterUpdateCommand
+    arguments:
+      - '@kernel'
+      - '@Atournayre\DotEnvUpdaterBundle\Service\DotEnvUpdaterService'
+    tags:
+      - { name: console.command }
+
+  atournayre_dotenv_updater_element_command:
+    class: Atournayre\DotEnvUpdaterBundle\Command\DotEnvUpdaterElementCommand
+    arguments:
+      - '@kernel'
+      - '@Atournayre\DotEnvUpdaterBundle\Service\DotEnvUpdaterService'
+    tags:
+      - { name: console.command }
+
+  Atournayre\DotEnvUpdaterBundle\Service\DotEnvUpdaterService: ~
