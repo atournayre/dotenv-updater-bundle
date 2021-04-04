@@ -46,10 +46,10 @@ $ php bin/console dotenv:update --debug
 
 ### Update specific variable in .env.local.php
 ```
-$ php bin/console dotenv:update:update
+$ php bin/console dotenv:update:element
 ```
 
 ### Update specific variable in .env.*.php
 ```
-$ php bin/console dotenv:update:update <.env.*.php>
+$ php bin/console dotenv:update:element <.env.*.php>
 ```
