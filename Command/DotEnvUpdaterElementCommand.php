@@ -49,8 +49,8 @@ class DotEnvUpdaterElementCommand extends DotEnvUpdaterCommand
 
             $selectedVariableKey = $this->askUserWitchVariableToUpdate(array_keys($dotEnvDotPhpVariables));
 
-            $dotEnvEditor = new DotEnvEditor();
-            $dotEnvEditor->load($dotEnvDotPhpPath);
+            $dotEnvEditor = new DotEnvEditor($dotEnvDotPhpPath);
+            $dotEnvEditor->load();
 
             $selectedVariableValue = $this->askUserWitchValueVorSelectedVariable($selectedVariableKey, $dotEnvEditor->get($selectedVariableKey));
 
