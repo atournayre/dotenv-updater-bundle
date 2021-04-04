@@ -15,8 +15,8 @@ class DotEnvUpdaterService
 
     public function getVariablesFromDotEnvDotPhp(string $envPath): array
     {
-        $dotEnvEditor = new DotEnvEditor();
-        $dotEnvEditor->load($envPath);
+        $dotEnvEditor = new DotEnvEditor($envPath);
+        $dotEnvEditor->load();
         return $dotEnvEditor->toArray();
     }
 
@@ -30,8 +30,8 @@ class DotEnvUpdaterService
 
     public function updateDotEnvDotPhp(array $variables, string $envPath): void
     {
-        $dotEnvEditor = new DotEnvEditor();
-        $dotEnvEditor->load($envPath);
+        $dotEnvEditor = new DotEnvEditor($envPath);
+        $dotEnvEditor->load();
 
         foreach ($variables as $key => $value) {
             $dotEnvEditor->add($key, $value);
